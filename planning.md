@@ -1,122 +1,86 @@
 # Project 1 Planning: The Unofficial Guide
 
-> Write this document before you write any pipeline code.
-> Your spec and architecture diagram are what you'll use to direct AI tools (Claude, Copilot, etc.) to generate your implementation — the more specific they are, the more useful the generated code will be.
-> Update the Retrieval Approach and Chunking Strategy sections if you change your approach during implementation.
-> Update this file before starting any stretch features.
-
 ---
 
 ## Domain
 
-<!-- What domain did you choose? Why is this knowledge valuable and hard to find through official channels? -->
+Student reviews of professors at Claremont McKenna College (CMC), sourced from Rate My Professors. This knowledge is valuable because official course catalogs only describe what a course covers — they say nothing about teaching style, exam difficulty, grading fairness, or actual workload. Students rely on peer reviews to make informed decisions about which professors to take, but this information is scattered across dozens of individual RMP pages and impossible to query in aggregate. This system makes that collective student knowledge searchable through plain-language questions.
 
 ---
 
 ## Documents
 
-<!-- List your specific sources: URLs, subreddit names, forum threads, or file descriptions.
-     Aim for at least 10 sources that together cover different subtopics or perspectives within your domain. -->
-
-| # | Source | Description | URL or location |
-|---|--------|-------------|-----------------|
-| 1 | | | |
-| 2 | | | |
-| 3 | | | |
-| 4 | | | |
-| 5 | | | |
-| 6 | | | |
-| 7 | | | |
-| 8 | | | |
-| 9 | | | |
-| 10 | | | |
+| # | Source | Description | URL |
+|---|--------|-------------|-----|
+| 1 | Prof Lincoln | Student reviews of Professor Lincoln at CMC | https://www.ratemyprofessors.com/professor/2080832 |
+| 2 | Prof Keller | Student reviews of Professor Keller at CMC | https://www.ratemyprofessors.com/professor/3071983 |
+| 3 | Prof Suh | Student reviews of Professor Suh at CMC | https://www.ratemyprofessors.com/professor/3047584 |
+| 4 | Prof Basu | Student reviews of Professor Basu at CMC | https://www.ratemyprofessors.com/professor/2501404 |
+| 5 | Prof Hamburg | Student reviews of Professor Hamburg at CMC | https://www.ratemyprofessors.com/professor/570828 |
+| 6 | Prof Espinosa | Student reviews of Professor Espinosa at CMC | https://www.ratemyprofessors.com/professor/553877 |
+| 7 | Prof Ron | Student reviews of Professor Ron at CMC | https://www.ratemyprofessors.com/professor/3071982 |
+| 8 | Prof Aksoy | Student reviews of Professor Aksoy at CMC | https://www.ratemyprofessors.com/professor/136434 |
+| 9 | Prof Shields | Student reviews of Professor Shields at CMC | https://www.ratemyprofessors.com/professor/1251648 |
+| 10 | Prof Ganguly | Student reviews of Professor Ganguly at CMC | https://www.ratemyprofessors.com/professor/1442770 |
 
 ---
 
 ## Chunking Strategy
 
-<!-- How will you split documents into chunks?
-     State your chunk size (in tokens or characters), overlap size, and explain why those
-     numbers fit the structure of your documents.
-     A review-heavy corpus warrants different chunking than a long FAQ. -->
+**Chunk size:** 300 characters
 
-**Chunk size:**
+**Overlap:** 50 characters
 
-**Overlap:**
-
-**Reasoning:**
+**Reasoning:** RMP reviews are short, opinion-based paragraphs — typically 2 to 4 sentences covering one specific aspect of a professor such as grading, lecture clarity, or workload. A 300-character chunk is large enough to capture one complete review thought while staying targeted enough to match a specific query. Chunks smaller than 150 characters would cut reviews mid-sentence, producing fragments like "her lectures are" with no standalone meaning and poor embedding quality. Chunks larger than 500 characters would merge multiple reviews together, making a single chunk relevant to too many different questions to be useful for any specific one. The 50-character overlap ensures that a review spanning a chunk boundary — where the key opinion starts at the end of one chunk and finishes at the start of the next — can still be retrieved intact.
 
 ---
 
 ## Retrieval Approach
 
-<!-- Which embedding model are you using (e.g., all-MiniLM-L6-v2 via sentence-transformers)?
-     How many chunks will you retrieve per query (top-k)?
-     If you were deploying this for real users and cost wasn't a constraint, what tradeoffs
-     would you weigh in choosing a different embedding model — context length, multilingual
-     support, accuracy on domain-specific text, latency? -->
+**Embedding model:** all-MiniLM-L6-v2 via sentence-transformers (runs locally, no API key required, no rate limits)
 
-**Embedding model:**
+**Top-k:** 4
 
-**Top-k:**
-
-**Production tradeoff reflection:**
+**Production tradeoff reflection:** all-MiniLM-L6-v2 is fast, free, and runs locally — ideal for a student project. However, it has a 256-token context limit, which is fine for short RMP reviews but would truncate longer documents like syllabi or housing guides. For a real production deployment I would consider OpenAI's text-embedding-3-small, which offers higher accuracy and a longer context window at a low per-token cost. If the system needed to support reviews in multiple languages, a multilingual model like paraphrase-multilingual-MiniLM-L12-v2 would be necessary. The key tradeoffs at scale are cost per query, latency (local vs. API), and accuracy on domain-specific informal text like student reviews.
 
 ---
 
 ## Evaluation Plan
 
-<!-- List your 5 test questions with their expected correct answers.
-     Questions should be specific enough that you can judge whether the system's response
-     is right or wrong. "What are good dining halls?" is too vague.
-     "What do students say about wait times at [dining hall name] during lunch?" is testable. -->
-
-| # | Question | Expected answer |
+| # | Question | Expected Answer |
 |---|----------|-----------------|
-| 1 | | |
-| 2 | | |
-| 3 | | |
-| 4 | | |
-| 5 | | |
+| 1 | Is Professor Aksoy a hard grader? | Yes — reviews describe tough grading, 40% weight on finals, and "unreasonable grading." A few reviews say she grades nicely if students show effort and engagement. |
+| 2 | What is Professor Aksoy's lecture style like? | Lecture-heavy, content-dense, and hard to follow according to most reviews. Some students say lectures are manageable if you take thorough notes. |
+| 3 | Is Professor Basu a good discussion facilitator? | Yes — multiple reviews specifically praise her as an outstanding discussion facilitator who leads engaging, well-structured conversations and hears all viewpoints. |
+| 4 | Does Professor Basu give a lot of homework? | Moderate workload — readings are heavy and papers are rigorous, but overall the workload is described as manageable and rewarding rather than overwhelming. |
+| 5 | Would students recommend Professor Aksoy to non-math majors? | No — reviews specifically say she is "maybe not the best for non-majors" as her teaching style is traditional, lecture-heavy, and assumes strong math background. |
 
 ---
 
 ## Anticipated Challenges
 
-<!-- What could go wrong? Name at least two specific risks with reasoning.
-     Consider: noisy or inconsistent documents, missing source attribution, off-topic
-     retrieval, chunks that split key information across boundaries. -->
+1. **Chunk boundary splits:** RMP reviews often make a single point across two sentences — for example, a positive opening sentence followed by a critical second sentence. If this split lands at a chunk boundary, neither chunk alone captures the full opinion, which could cause the retrieval to return an incomplete or misleading context to the LLM.
 
-1.
-
-2.
-
----
+2. **Sparse reviews for some professors:** Some professors in the dataset have only a handful of reviews. When the system retrieves chunks for a query about a sparsely reviewed professor, the LLM may not have enough context to give a confident or representative answer — and may instead return vague or hedged responses that aren't very useful.
 
 ## Architecture
 
-<!-- Draw a diagram of your pipeline showing the five stages:
-     Document Ingestion → Chunking → Embedding + Vector Store → Retrieval → Generation
-     Label each stage with the tool or library you're using.
-     You can use ASCII art, a Mermaid diagram, or embed a sketch as an image.
-     You'll use this diagram as context when prompting AI tools to implement each stage. -->
-
----
-
-## AI Tool Plan
-
-<!-- For each part of the pipeline below, describe:
-     - Which AI tool you plan to use (Claude, Copilot, ChatGPT, etc.)
-     - What you'll give it as input (which sections of this planning.md, which requirements)
-     - What you expect it to produce
-     - How you'll verify the output matches your spec
-
-     "I'll use AI to help me code" is not a plan.
-     "I'll give Claude my Chunking Strategy section and ask it to implement chunk_text()
-     with my specified chunk size and overlap" is a plan. -->
-
-**Milestone 3 — Ingestion and chunking:**
-
-**Milestone 4 — Embedding and retrieval:**
-
-**Milestone 5 — Generation and interface:**
+10 x .txt files (one per professor, sourced from Rate My Professors)
+        |
+        v
+[Document Ingestion — ingest.py — load_documents()]
+        |
+        v
+[Chunking — ingest.py — chunk_document() — 300 chars, 50 char overlap]
+        |
+        v
+[Embedding + Vector Store — all-MiniLM-L6-v2 + ChromaDB — retriever.py]
+        |
+        v
+[Retrieval — retriever.py — retrieve() — cosine similarity, top-k=4]
+        |
+        v
+[Generation — generator.py — Groq llama-3.3-70b-versatile — grounded prompt]
+        |
+        v
+[Gradio Web UI — app.py]
