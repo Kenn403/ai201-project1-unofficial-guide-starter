@@ -33,7 +33,7 @@ Student reviews of professors at Claremont McKenna College (CMC), sourced from R
 
 **Why these choices fit your documents:** RMP reviews are short opinion-based paragraphs — typically 2 to 4 sentences covering one specific aspect of a professor. A 300-character chunk captures one complete review thought while staying targeted enough to match specific queries. Chunks smaller than 150 characters would cut reviews mid-sentence producing meaningless fragments. Chunks larger than 500 characters would merge multiple reviews together making them match too many different questions to be useful for any specific one. The 50-character overlap ensures a review spanning a chunk boundary can still be retrieved intact.
 
-**Final chunk count:** Run `python app.py` and check the terminal output for the exact number.
+**Final chunk count:** 193 chunks across 10 professor documents
 
 ---
 
